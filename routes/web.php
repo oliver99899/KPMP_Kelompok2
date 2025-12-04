@@ -41,6 +41,9 @@ Route::middleware('auth')->group(function () {
         // Aksi Tolak (Reject)
         Route::post('/admin/sellers/{id}/reject', [AdminSellerController::class, 'reject'])->name('admin.sellers.reject');
     });
+    // D. MANAJEMEN PRODUK (SRS-03) ---
+    // Resource route otomatis membuat rute index, create, store, edit, update, destroy
+    Route::resource('products', \App\Http\Controllers\ProductController::class);
 });
 
 // --- 4. RUTE OTENTIKASI (Login, Register, Logout) ---
