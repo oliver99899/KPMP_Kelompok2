@@ -46,14 +46,25 @@ class ProductController extends Controller
     // --- 3. STORE (Simpan Data Baru ke Database) ---
     public function store(Request $request)
     {
-        // Validasi input
+        // Validasi input dengan Pesan Bahasa Indonesia
         $request->validate([
             'name' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
             'price' => 'required|numeric|min:100',
-            'stock' => 'required|integer|min:1',
+            'stock' => 'required|integer|min:1', // Produk baru minimal stok 1
             'description' => 'nullable|string',
             'image' => 'required|image|mimes:jpeg,png,jpg|max:2048', // Wajib ada gambar
+        ], [
+            // KAMUS PESAN ERROR INDONESIA
+            'name.required' => 'Nama produk wajib diisi!',
+            'category_id.required' => 'Mohon pilih kategori produk!',
+            'price.required' => 'Harga produk harus diisi!',
+            'price.min' => 'Harga minimal Rp 100.',
+            'stock.required' => 'Stok awal harus diisi!',
+            'stock.min' => 'Stok minimal 1 pcs untuk produk baru!',
+            'image.required' => 'Foto produk wajib diupload!',
+            'image.max' => 'Ukuran foto maksimal 2MB!',
+            'image.mimes' => 'Format foto harus JPG, JPEG, atau PNG!',
         ]);
 
         $seller = Seller::where('user_id', Auth::id())->firstOrFail();
@@ -100,13 +111,22 @@ class ProductController extends Controller
         $seller = Seller::where('user_id', Auth::id())->firstOrFail();
         if ($product->seller_id !== $seller->id) abort(403);
 
+        // Validasi dengan Pesan Bahasa Indonesia
         $request->validate([
             'name' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
-            'price' => 'required|numeric|min:100',
-            'stock' => 'required|integer|min:0',
+            'price' => 'required|numeric|min:1',
+            'stock' => 'required|integer|min:0', // Boleh 0 saat edit
             'description' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048', // Image boleh kosong saat edit
+        ], [
+            // KAMUS PESAN ERROR INDONESIA
+            'name.required' => 'Nama produk tidak boleh kosong!',
+            'price.required' => 'Harga produk harus diisi!',
+            'price.min' => 'Harga tidak boleh kurang dari 1!',
+            'stock.required' => 'Stok produk harus diisi!',
+            'stock.min' => 'Stok tidak boleh kurang dari 0!',
+            'image.max' => 'Ukuran foto maksimal 2MB!',
         ]);
 
         // Handle Image Upload (Jika ada gambar baru)

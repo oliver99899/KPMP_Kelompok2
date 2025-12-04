@@ -13,14 +13,17 @@
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+        <!-- 1. PANGGIL SWEETALERT2 (CDN) -->
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     </head>
     <body class="font-sans antialiased bg-gray-50 text-gray-900">
         <div class="min-h-screen">
             
-            {{-- 1. Navigation Bar (Konsisten) --}}
+            {{-- Navigation Bar --}}
             @include('layouts.navigation')
 
-            {{-- 2. Page Heading (Opsional) --}}
+            {{-- Page Heading --}}
             @isset($header)
                 <header class="bg-white shadow-sm border-b border-gray-200">
                     <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
@@ -29,37 +32,51 @@
                 </header>
             @endisset
 
-            {{-- 3. FLASH MESSAGE / NOTIFIKASI (Terapung & Cantik) --}}
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 space-y-2">
-                @if (session('success'))
-                    <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded shadow-sm flex items-center justify-between">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0 text-green-500">
-                                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                            </div>
-                            <div class="ml-3">
-                                <p class="text-sm font-medium text-green-800">{{ session('success') }}</p>
-                            </div>
-                        </div>
-                    </div>
-                @endif
-
-                @if (session('error'))
-                    <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded shadow-sm flex items-center">
-                        <div class="flex-shrink-0 text-red-500">
-                            <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-sm font-medium text-red-800">{{ session('error') }}</p>
-                        </div>
-                    </div>
-                @endif
-            </div>
-
-            {{-- 4. Page Content --}}
+            {{-- Page Content --}}
             <main class="py-6">
                 {{ $slot }}
             </main>
         </div>
+
+        {{-- 2. SCRIPT POPUP OTOMATIS --}}
+        <script>
+            // --- KASUS A: SUKSES (Dari Controller with('success')) ---
+            @if (session('success'))
+                Swal.fire({
+                    title: 'Berhasil!',
+                    text: "{{ session('success') }}",
+                    icon: 'success',
+                    confirmButtonColor: '#4F46E5', // Warna Indigo
+                    timer: 3000 // Otomatis tutup dalam 3 detik
+                });
+            @endif
+
+            // --- KASUS B: ERROR VALIDASI (Stok Minus, Kolom Kosong, dll) ---
+            @if ($errors->any())
+                Swal.fire({
+                    title: 'Gagal Disimpan!',
+                    html: `
+                        <ul style="text-align: left; margin-top: 10px;">
+                            @foreach ($errors->all() as $error)
+                                <li style="color: red; margin-bottom: 5px;">• {{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    `,
+                    icon: 'error',
+                    confirmButtonText: 'Perbaiki',
+                    confirmButtonColor: '#d33',
+                });
+            @endif
+
+            // --- KASUS C: ERROR UMUM (Dari Controller with('error')) ---
+            @if (session('error'))
+                Swal.fire({
+                    title: 'Terjadi Kesalahan!',
+                    text: "{{ session('error') }}",
+                    icon: 'error',
+                    confirmButtonColor: '#d33'
+                });
+            @endif
+        </script>
     </body>
 </html>
