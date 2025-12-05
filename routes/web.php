@@ -1,12 +1,13 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\SellerController;       // Controller Penjual (SRS-01)
-use App\Http\Controllers\AdminSellerController;  // Controller Admin (SRS-02)
-use App\Http\Controllers\DashboardController;     // Controller Dashboard (SRS-07/08)
-use App\Http\Controllers\HomeController;          // Controller Halaman Depan (SRS-04/05)
-use App\Http\Controllers\ReviewController;        // Controller Review (SRS-06)
-use App\Http\Middleware\IsAdmin;                 // Middleware Admin
+use App\Http\Controllers\SellerController;          // Controller Penjual (SRS-01)
+use App\Http\Controllers\AdminSellerController;     // Controller Admin (SRS-02)
+use App\Http\Controllers\DashboardController;       // Controller Dashboard (SRS-07/08)
+use App\Http\Controllers\HomeController;            // Controller Halaman Depan (SRS-04/05)
+use App\Http\Controllers\ReviewController;          // Controller Review (SRS-06)
+use App\Http\Controllers\ReportController;          // Controller Laporam Platform (SRS-09/10/11)
+use App\Http\Middleware\IsAdmin;                    // Middleware Admin
 use Illuminate\Support\Facades\Route;
 
 // --- RUTE PUBLIK (PENGUNJUNG) ---
@@ -39,6 +40,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/admin/sellers/{id}/approve', [AdminSellerController::class, 'approve'])->name('admin.sellers.approve');
         // Aksi Tolak (Reject)
         Route::post('/admin/sellers/{id}/reject', [AdminSellerController::class, 'reject'])->name('admin.sellers.reject');
+        // --- RUTE LAPORAN PLATFORM (SRS 09-11) ---
+        Route::get('/admin/report/status', [ReportController::class, 'sellerStatusReport'])->name('report.platform.status');
+        Route::get('/admin/report/location', [ReportController::class, 'storeLocationReport'])->name('report.platform.location');
+        Route::get('/admin/report/rating', [ReportController::class, 'productRatingReport'])->name('report.platform.rating');
     });
 
     // 2. D. MANAJEMEN PRODUK (SRS-03)
