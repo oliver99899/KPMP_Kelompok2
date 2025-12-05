@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [\App\Http\Controllers\HomeController::class, 'index'])->name('home');
 Route::get('/product/{slug}', [\App\Http\Controllers\HomeController::class, 'show'])->name('product.show');
 Route::post('/product/{slug}/review', [\App\Http\Controllers\ReviewController::class, 'store'])->name('review.store');
+Route::get('/store/{id}', [\App\Http\Controllers\HomeController::class, 'storeDetail'])->name('store.show');
 
 // --- 2. RUTE DASHBOARD (Perlu Login & Verifikasi Email) ---
 Route::get('/dashboard', function () {

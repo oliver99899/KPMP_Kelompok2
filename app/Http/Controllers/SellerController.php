@@ -5,25 +5,35 @@ namespace App\Http\Controllers;
 use App\Models\Seller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class SellerController extends Controller
 {
-    // Menampilkan Formulir Registrasi (Method: create) [cite: 277]
+    // Menampilkan Formulir Registrasi (Atau Edit jika Ditolak)
     public function create()
     {
-        // Cek apakah user sudah pernah daftar toko? Jika sudah, jangan kasih daftar lagi.
-        if (Seller::where('user_id', Auth::id())->exists()) {
-            return redirect()->route('dashboard')->with('error', 'Anda sudah terdaftar sebagai penjual.');
+        $seller = Seller::where('user_id', Auth::id())->first();
+
+        // Jika sudah punya toko
+        if ($seller) {
+            // Jika AKTIF atau PENDING, jangan kasih daftar lagi
+            if ($seller->status === 'ACTIVE' || $seller->status === 'PENDING') {
+                return redirect()->route('dashboard')->with('error', 'Anda sudah terdaftar atau sedang dalam verifikasi.');
+            }
+            // Jika REJECTED, boleh lanjut ke view (untuk perbaikan)
         }
 
-        return view('sellers.register');
+        // Kirim data $seller ke view (bisa null jika pengguna baru, atau berisi data jika ditolak)
+        return view('sellers.register', compact('seller'));
     }
 
-    // Menyimpan Data Registrasi (Method: store) [cite: 278]
+    // Menyimpan Data Registrasi (Create / Update)
     public function store(Request $request)
     {
-        // 1. Validasi Input sesuai SRS & Quick Design [cite: 229]
-        $request->validate([
+        // Cek apakah ini update data lama (Re-Apply) atau baru
+        $seller = Seller::where('user_id', Auth::id())->first();
+
+        $rules = [
             'store_name' => 'required|string|max:255',
             'store_description' => 'nullable|string',
             'pic_name' => 'required|string|max:255',
@@ -35,20 +45,16 @@ class SellerController extends Controller
             'pic_village' => 'required|string',
             'pic_city' => 'required|string',
             'pic_province' => 'required|string',
-            'pic_ktp_number' => 'required|string|size:16', // KTP harus 16 digit
-            // Validasi File: Foto JPG/PNG max 2MB [cite: 199]
-            'pic_photo' => 'required|image|mimes:jpeg,png,jpg|max:2048', 
-            // Validasi File: KTP JPG/PNG/PDF max 5MB [cite: 202]
-            'pic_ktp_file' => 'required|file|mimes:jpeg,png,jpg,pdf|max:5120', 
-        ]);
+            'pic_ktp_number' => 'required|string|size:16',
+            // File wajib jika baru, opsional jika update (nullable)
+            'pic_photo' => $seller ? 'nullable|image|mimes:jpeg,png,jpg|max:2048' : 'required|image|mimes:jpeg,png,jpg|max:2048',
+            'pic_ktp_file' => $seller ? 'nullable|file|mimes:jpeg,png,jpg,pdf|max:5120' : 'required|file|mimes:jpeg,png,jpg,pdf|max:5120',
+        ];
 
-        // 2. Proses Upload File
-        $photoPath = $request->file('pic_photo')->store('seller_photos', 'public');
-        $ktpPath = $request->file('pic_ktp_file')->store('seller_ktps', 'public');
+        $request->validate($rules);
 
-        // 3. Simpan ke Database (Model Seller) [cite: 271]
-        Seller::create([
-            'user_id' => Auth::id(), // Ambil ID user yang sedang login
+        // Siapkan data untuk disimpan
+        $data = [
             'store_name' => $request->store_name,
             'store_description' => $request->store_description,
             'pic_name' => $request->pic_name,
@@ -61,12 +67,31 @@ class SellerController extends Controller
             'pic_city' => $request->pic_city,
             'pic_province' => $request->pic_province,
             'pic_ktp_number' => $request->pic_ktp_number,
-            'pic_photo_path' => $photoPath,
-            'pic_ktp_file_path' => $ktpPath,
-            'status' => 'PENDING', // Status awal Pending
-        ]);
+            'status' => 'PENDING', // Reset status jadi PENDING agar dicek admin lagi
+        ];
 
-        // 4. Redirect dengan pesan sukses
-        return redirect()->route('dashboard')->with('success', 'Registrasi toko berhasil! Mohon tunggu verifikasi admin.');
+        // Handle File Upload (Hanya jika ada file baru)
+        if ($request->hasFile('pic_photo')) {
+            if ($seller && $seller->pic_photo_path) Storage::disk('public')->delete($seller->pic_photo_path);
+            $data['pic_photo_path'] = $request->file('pic_photo')->store('seller_photos', 'public');
+        }
+        
+        if ($request->hasFile('pic_ktp_file')) {
+            if ($seller && $seller->pic_ktp_file_path) Storage::disk('public')->delete($seller->pic_ktp_file_path);
+            $data['pic_ktp_file_path'] = $request->file('pic_ktp_file')->store('seller_ktps', 'public');
+        }
+
+        if ($seller) {
+            // UPDATE data lama
+            $seller->update($data);
+            $message = 'Pengajuan ulang berhasil dikirim! Mohon tunggu verifikasi admin.';
+        } else {
+            // CREATE data baru
+            $data['user_id'] = Auth::id();
+            Seller::create($data);
+            $message = 'Registrasi toko berhasil! Mohon tunggu verifikasi admin.';
+        }
+
+        return redirect()->route('dashboard')->with('success', $message);
     }
 }

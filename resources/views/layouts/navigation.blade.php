@@ -2,8 +2,13 @@
 @php
     $user = Auth::user();
     $navSeller = \App\Models\Seller::where('user_id', $user->id)->first();
+    
     $isNavSellerActive = $navSeller && $navSeller->status === 'ACTIVE';
     $isNavSellerPending = $navSeller && $navSeller->status === 'PENDING';
+    
+    // TAMBAHAN: Cek Status REJECTED (Ditolak)
+    $isNavSellerRejected = $navSeller && $navSeller->status === 'REJECTED'; 
+
     $isAdmin = $user->role === 'ADMIN';
 @endphp
 
@@ -26,12 +31,12 @@
                 {{-- Menu Desktop --}}
                 <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
                     
-                    {{-- 1. Menu Dashboard (Semua User) --}}
+                    {{-- 1. Menu Dashboard --}}
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" class="text-gray-600 hover:text-indigo-600 font-medium">
                         {{ __('Dashboard') }}
                     </x-nav-link>
 
-                    {{-- 2. Menu KHUSUS ADMIN (Tampilan Disamakan dengan Dashboard) --}}
+                    {{-- 2. Menu KHUSUS ADMIN --}}
                     @if($isAdmin)
                         <x-nav-link :href="route('admin.sellers.index')" :active="request()->routeIs('admin.sellers.*')" class="text-gray-600 hover:text-indigo-600 font-medium">
                             {{ __('Verifikasi Penjual') }}
@@ -41,13 +46,13 @@
                     {{-- 3. Menu KHUSUS PENJUAL (Jika Bukan Admin) --}}
                     @if(!$isAdmin)
                         @if(!$navSeller)
-                            {{-- Belum Punya Toko --}}
+                            {{-- A. Belum Punya Toko -> Buka Toko --}}
                             <x-nav-link :href="route('seller.register')" :active="request()->routeIs('seller.register')" class="text-indigo-600 font-bold">
                                 + {{ __('Buka Toko Gratis') }}
                             </x-nav-link>
                         
                         @elseif($isNavSellerPending)
-                            {{-- Menunggu Verifikasi --}}
+                            {{-- B. Menunggu Verifikasi (Teks Kuning) --}}
                             <div class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-yellow-600">
                                 <span class="flex items-center gap-1">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> 
@@ -55,8 +60,17 @@
                                 </span>
                             </div>
 
+                        @elseif($isNavSellerRejected)
+                            {{-- C. DITOLAK (Teks Merah & Link ke Register untuk Perbaikan) --}}
+                            <x-nav-link :href="route('seller.register')" :active="request()->routeIs('seller.register')" class="text-red-600 font-bold hover:text-red-800">
+                                <span class="flex items-center gap-1">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                    Pengajuan Ditolak (Perbaiki)
+                                </span>
+                            </x-nav-link>
+
                         @elseif($isNavSellerActive)
-                            {{-- Toko Aktif -> Kelola Produk --}}
+                            {{-- D. Toko Aktif -> Kelola Produk --}}
                             <x-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')" class="text-gray-600 hover:text-indigo-600">
                                 {{ __('Produk Saya') }}
                             </x-nav-link>
@@ -90,9 +104,7 @@
                     </x-slot>
 
                     <x-slot name="content">
-                        <x-dropdown-link :href="route('profile.edit')">
-                            {{ __('Profile Saya') }}
-                        </x-dropdown-link>
+                        <x-dropdown-link :href="route('profile.edit')">{{ __('Profile Saya') }}</x-dropdown-link>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <x-dropdown-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();" class="text-red-600">
@@ -106,7 +118,7 @@
             {{-- HAMBURGER MOBILE --}}
             <div class="-mr-2 flex items-center sm:hidden">
                 <button @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none transition">
-                    <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24"><path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /><path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24"><path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /><path :class="{'hidden': open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
             </div>
         </div>
@@ -134,6 +146,10 @@
             @if(!$isAdmin)
                 @if(!$navSeller)
                     <x-responsive-nav-link :href="route('seller.register')" class="text-indigo-600 font-bold">Buka Toko</x-responsive-nav-link>
+                @elseif($isNavSellerPending)
+                    <div class="px-4 py-2 text-sm font-medium text-yellow-600 border-l-4 border-yellow-400 bg-yellow-50">Menunggu Verifikasi</div>
+                @elseif($isNavSellerRejected)
+                    <x-responsive-nav-link :href="route('seller.register')" class="text-red-600 font-bold">Pengajuan Ditolak (Perbaiki)</x-responsive-nav-link>
                 @elseif($isNavSellerActive)
                     <x-responsive-nav-link :href="route('products.index')">Produk Saya</x-responsive-nav-link>
                 @endif

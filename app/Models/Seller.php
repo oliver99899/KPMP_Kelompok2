@@ -9,10 +9,8 @@ class Seller extends Model
 {
     use HasFactory;
 
-    // Menentukan nama tabel (opsional jika sesuai standar, tapi aman ditulis)
     protected $table = 'sellers';
 
-    // DAFTAR KOLOM YANG BOLEH DIISI (Mass Assignment)
     protected $fillable = [
         'user_id',
         'store_name',
@@ -32,9 +30,13 @@ class Seller extends Model
         'status',
     ];
 
-    // Relasi: Penjual milik satu User
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function products()
+    {
+        return $this->hasMany(Product::class);
     }
 }
