@@ -48,7 +48,7 @@
                         @if(!$navSeller)
                             {{-- A. Belum Punya Toko -> Buka Toko --}}
                             <x-nav-link :href="route('seller.register')" :active="request()->routeIs('seller.register')" class="text-indigo-600 font-bold">
-                                + {{ __('Buka Toko Gratis') }}
+                                + {{ __('Buka Toko') }}
                             </x-nav-link>
                         
                         @elseif($isNavSellerPending)

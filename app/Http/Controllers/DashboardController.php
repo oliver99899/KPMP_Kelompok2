@@ -15,9 +15,12 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         $isAdmin = $user->role === 'ADMIN';
-
-        // Lanjut ke view dengan status user
-        return view('dashboard', compact('isAdmin'));
+        $isSeller = false;
+        if ($user->role === 'USER') {
+            // Memastikan relasi seller ada dan mengembalikan Model Seller
+            $isSeller = $user->seller instanceof \App\Models\Seller;
+        }
+        return view('dashboard', compact('isAdmin', 'isSeller')); 
     }
 
 // --- SRS-07: DATA PLATFORM (ADMIN) ---

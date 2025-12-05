@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Laporan Produk Berdasarkan Rating</title>
+    <title>Laporan Stok Produk Berdasarkan Rating - {{ $seller->store_name }}</title>
     <style>
         body { font-family: sans-serif; font-size: 9pt; }
         h1 { text-align: center; font-size: 14pt; margin-bottom: 5px; }
@@ -14,33 +14,31 @@
     </style>
 </head>
 <body>
-    <h1>Laporan Daftar Produk Berdasarkan Rating</h1>
+    <h1>Laporan Daftar Stok Produk Berdasarkan Rating</h1>
     <div class="info">
-        Tanggal dibuat: <span>{{ $date }}</span> oleh <span>{{ $processor }}</span>
+        Tanggal dibuat: <span>{{ $date }}</span> oleh <span>{{ $processor }})</span>
     </div>
 
     <table>
         <thead>
             <tr>
-                <th>No</th>
-                <th>Produk</th>
-                <th>Kategori</th>
-                <th>Harga</th>
-                <th>Rating</th>
-                <th>Nama Toko</th>
-                <th>Propinsi Toko</th>
+                <th style="width: 5%;">No</th>
+                <th style="width: 35%;">Nama Produk</th>
+                <th style="width: 20%;">Kategori</th>
+                <th style="width: 15%;">Harga</th>
+                <th style="width: 10%; text-align: center;">Stok</th>
+                <th style="width: 15%; text-align: center;">Rating Avg.</th>
             </tr>
         </thead>
         <tbody>
             @foreach($data as $index => $item)
             <tr>
                 <td>{{ $index + 1 }}</td>
-                <td>{{ $item->product_name }}</td>
-                <td>{{ $item->category_name }}</td>
+                <td>{{ $item->name }}</td>
+                <td>{{ $item->category->name ?? '-' }}</td>
                 <td>Rp {{ number_format($item->price, 0, ',', '.') }}</td>
+                <td style="text-align: center;">{{ $item->stock }}</td>
                 <td class="rating-star" style="text-align: center;">{{ number_format($item->reviews_avg_rating ?? 0, 1) }}</td>
-                <td>{{ $item->store_name }}</td>
-                <td>{{ $item->pic_province }}</td>
             </tr>
             @endforeach
         </tbody>
