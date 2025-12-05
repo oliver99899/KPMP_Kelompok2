@@ -30,7 +30,7 @@ class SellerApproved extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.seller_approved', // Kita akan buat view ini sebentar lagi
+            view: 'emails.seller_approved',
         );
     }
 }

@@ -28,4 +28,10 @@ class Product extends Model
     {
         return $this->belongsTo(Category::class);
     }
+
+    // Relasi ke Review
+    public function reviews()
+    {
+    return $this->hasMany(Review::class);
+    }
 }

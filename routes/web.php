@@ -6,10 +6,10 @@ use App\Http\Controllers\AdminSellerController; // Controller Admin (SRS-02)
 use App\Http\Middleware\IsAdmin;                // Middleware Admin (Solusi Error Closure)
 use Illuminate\Support\Facades\Route;
 
-// --- 1. RUTE PUBLIK ---
-Route::get('/', function () {
-    return view('welcome');
-});
+// --- RUTE PUBLIK (PENGUNJUNG) ---
+Route::get('/', [\App\Http\Controllers\HomeController::class, 'index'])->name('home');
+Route::get('/product/{slug}', [\App\Http\Controllers\HomeController::class, 'show'])->name('product.show');
+Route::post('/product/{slug}/review', [\App\Http\Controllers\ReviewController::class, 'store'])->name('review.store');
 
 // --- 2. RUTE DASHBOARD (Perlu Login & Verifikasi Email) ---
 Route::get('/dashboard', function () {

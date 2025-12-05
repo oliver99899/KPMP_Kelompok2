@@ -2,35 +2,38 @@
 
 namespace App\Mail;
 
-use App\Models\Seller;
+use App\Models\Review;
+use App\Models\Product; // Tambahkan ini
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class SellerRejected extends Mailable
+class ReviewSubmitted extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $seller; // Variabel untuk menampung data penjual
+    public $review;
+    public $product;
 
-    public function __construct(Seller $seller)
+    public function __construct(Review $review, Product $product)
     {
-        $this->seller = $seller;
+        $this->review = $review;
+        $this->product = $product;
     }
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Mohon Maaf, Pengajuan Toko Anda Ditolak',
+            subject: 'Terima Kasih Atas Ulasan Anda - KPMP Market',
         );
     }
 
     public function content(): Content
     {
         return new Content(
-            view: 'emails.seller_rejected',
+            view: 'emails.review_submitted',
         );
     }
 }

@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Mail; // Import Mail
 use App\Mail\SellerApproved;         // Import Surat Terima
 use App\Mail\SellerRejected;         // Import Surat Tolak
 
+
 class AdminSellerController extends Controller
 {
     // 1. Tampilkan Daftar Penjual
@@ -23,13 +24,9 @@ class AdminSellerController extends Controller
         $seller = Seller::findOrFail($id);
         $seller->update(['status' => 'ACTIVE']);
 
-        // Coba kirim email, kalau gagal ya sudah (jangan crash)
         try {
             Mail::to($seller->pic_email)->send(new SellerApproved($seller));
-        } catch (\Exception $e) {
-            // Opsional: Log errornya biar kita tau
-            // Log::error("Gagal kirim email approve: " . $e->getMessage());
-        }
+        } catch (\Exception $e) {}
 
         return redirect()->back()->with('success', 'Toko berhasil disetujui (Status: Active).');
     }
@@ -42,9 +39,7 @@ class AdminSellerController extends Controller
 
         try {
             Mail::to($seller->pic_email)->send(new SellerRejected($seller));
-        } catch (\Exception $e) {
-            // Diam saja kalau error
-        }
+        } catch (\Exception $e) {}
 
         return redirect()->back()->with('success', 'Toko telah ditolak.');
     }
